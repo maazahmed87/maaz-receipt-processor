@@ -3,17 +3,21 @@ package handler
 import (
 	"net/http"
 	"receipt-processor/internal/domain/model"
+	"receipt-processor/internal/domain/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 // ReceiptHandler hanldes HTTP requests for receipts
 type ReceiptHandler struct {
+	service *service.ReceiptService
 }
 
 // NewReceiptHanlder creates a new receipt handler
-func NewReceiptHandler() *ReceiptHandler {
-	return &ReceiptHandler{}
+func NewReceiptHandler(service *service.ReceiptService) *ReceiptHandler {
+	return &ReceiptHandler{
+		service: service,
+	}
 }
 
 func (h *ReceiptHandler) ProcessReceipt(c *gin.Context) {
@@ -26,21 +30,24 @@ func (h *ReceiptHandler) ProcessReceipt(c *gin.Context) {
 		return
 	}
 
-	//returning dummy-id for now
-	response := model.ProcessResponse{
-		ID: "dummy-id",
+	id, err := h.service.ProcessReceipt(receipt)
+
+	if err != nil {
+		c.JSON((http.StatusInternalServerError), gin.H{"error": "Failed to process receipt"})
+		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, model.ProcessResponse{ID: id})
 }
 
 func (h *ReceiptHandler) GetPoints(c *gin.Context) {
-	// id := c.Param("id")
+	id := c.Param("id")
 
-	// returning dummy points for now
-	response := model.PointsResponse{
-		Points: 100,
+	points, err := h.service.GetPoints(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Receipt not found"})
+		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, model.PointsResponse{Points: points})
 }

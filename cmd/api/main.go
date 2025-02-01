@@ -3,18 +3,21 @@ package main
 import (
 	"log"
 	"receipt-processor/internal/api/handler"
+	"receipt-processor/internal/domain/service"
+	"receipt-processor/internal/storage/memory"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// create a default gin router
-	router := gin.Default()
-
-	// initialize the receipt handler
-	receiptHandler := handler.NewReceiptHandler()
+	// initialize the dependencies
+	storage := memory.NewMemoryStorage()
+	receiptService := service.NewReceiptService(storage)
+	receiptHandler := handler.NewReceiptHandler(receiptService)
 
 	// defined routes
+	// create a default gin router
+	router := gin.Default()
 	router.GET("/receipts/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
