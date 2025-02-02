@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"receipt-processor/internal/domain/model"
 	"receipt-processor/internal/domain/service"
+	"receipt-processor/pkg/validator"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,12 @@ func (h *ReceiptHandler) ProcessReceipt(c *gin.Context) {
 	id, err := h.service.ProcessReceipt(receipt)
 
 	if err != nil {
+		if validationErr, ok := err.(*validator.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": validationErr.Error(),
+			})
+			return
+		}
 		c.JSON((http.StatusInternalServerError), gin.H{"error": "Failed to process receipt"})
 		return
 	}

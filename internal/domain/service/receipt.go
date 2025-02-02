@@ -4,6 +4,7 @@ import (
 	"math"
 	"receipt-processor/internal/domain/model"
 	"receipt-processor/internal/storage/memory"
+	"receipt-processor/pkg/validator"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,19 +15,25 @@ import (
 
 // ReceiptService hanles the business logic for receipt processing
 type ReceiptService struct {
-	storage memory.ReceiptStorage
+	storage   memory.ReceiptStorage
+	validator *validator.ReceiptValidator
 }
 
 // NewReceiptService creates a new ReceiptService instance
 func NewReceiptService(storage memory.ReceiptStorage) *ReceiptService {
 	return &ReceiptService{
-		storage: storage,
+		storage:   storage,
+		validator: validator.NewReceiptValidator(),
 	}
 }
 
 // ProcessReceipt calculates the points for a receipt and stores the receipt
 func (s *ReceiptService) ProcessReceipt(receipt model.Receipt) (string, error) {
 	id := uuid.New().String()
+
+	if err := s.validator.Validate(receipt); err != nil {
+		return "", err
+	}
 
 	points := s.calculatePoints(receipt)
 
