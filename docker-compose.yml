@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: receipt-processor-api
+    restart: unless-stopped
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - GIN_MODE=release
+      - PORT=8080
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/receipts/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

@@ -2,12 +2,23 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"receipt-processor/internal/api/handler"
 	"receipt-processor/internal/domain/service"
 	"receipt-processor/internal/storage/memory"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+func setupHealthCheck(router *gin.Engine) {
+	router.GET("receipts/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+			"time":   time.Now(),
+		})
+	})
+}
 
 func main() {
 	// initialize the dependencies
@@ -18,12 +29,7 @@ func main() {
 	// defined routes
 	// create a default gin router
 	router := gin.Default()
-	router.GET("/receipts/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"message": "Server is running",
-		})
-	})
+	setupHealthCheck(router)
 	router.POST("/receipts/process", receiptHandler.ProcessReceipt)
 	router.GET("/receipts/:id/points", receiptHandler.GetPoints)
 
