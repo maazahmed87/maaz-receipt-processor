@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   api:
-    container_name: receipt-processor-api
+    container_name: maaz-receipt-processor-api
     restart: unless-stopped
     build: .
     ports:
